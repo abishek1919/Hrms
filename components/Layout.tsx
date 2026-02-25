@@ -2,18 +2,18 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Role } from '../types';
-import { 
-    LogOut, 
-    LayoutTemplate, 
-    Clock, 
-    CheckSquare, 
-    BarChart3, 
-    Menu, 
-    X, 
-    LayoutDashboard, 
-    CalendarDays, 
-    User as UserIcon, 
-    ShieldCheck, 
+import {
+    LogOut,
+    LayoutTemplate,
+    Clock,
+    CheckSquare,
+    BarChart3,
+    Menu,
+    X,
+    LayoutDashboard,
+    CalendarDays,
+    User as UserIcon,
+    ShieldCheck,
     Settings,
     ShieldAlert,
     Briefcase,
@@ -24,6 +24,8 @@ import {
     Cpu
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { UserMenu } from './UserMenu';
+import { tokens } from '../styles/tokens';
 
 interface SidebarLinkProps {
   to: string;
@@ -75,8 +77,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         return [
           { to: '/employee/dashboard', icon: <LayoutDashboard size={18} />, label: 'Overview' },
           { to: '/employee/timesheets', icon: <Clock size={18} />, label: 'Timesheets' },
+          { to: '/employee/calendar', icon: <CalendarDays size={18} />, label: 'Calendar' },
           { to: '/employee/leaves', icon: <CalendarDays size={18} />, label: 'Time Off' },
-          { to: '/profile', icon: <UserIcon size={18} />, label: 'My Profile' },
+          // profile link moved to the header avatar dropdown
         ];
       case Role.MANAGER:
         return [
@@ -84,7 +87,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           { to: '/manager/team-timesheets', icon: <Clock size={18} />, label: 'Team Archive' },
           { to: '/manager/approvals', icon: <CheckSquare size={18} />, label: 'Approvals' },
           { to: '/manager/reports', icon: <BarChart3 size={18} />, label: 'Analytics' },
-          { to: '/profile', icon: <UserIcon size={18} />, label: 'My Profile' },
+          // profile link moved to header
         ];
       case Role.HR:
         return [
@@ -157,52 +160,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           )}
         </nav>
 
-        <div className="p-8">
-          <div className="bg-white p-5 rounded-[2.5rem] shadow-sm border border-slate-100 group">
-            <div className="flex items-center gap-4 mb-5">
-              <div className="relative">
-                <img src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="User" className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover transition-transform group-hover:scale-105" />
-                <div className="absolute -bottom-1 -right-1 bg-primary-600 w-5 h-5 rounded-lg border-2 border-white flex items-center justify-center">
-                    <ShieldCheck size={10} className="text-white" />
-                </div>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-black text-slate-950 truncate leading-none mb-1">{user.name}</p>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{user.role}</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-3">
-                <button 
-                  onClick={() => navigate('/profile')} 
-                  className="flex-1 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-all border border-transparent hover:border-primary-100"
-                >
-                    <Settings size={20} />
-                </button>
-                <button 
-                  onClick={handleLogout} 
-                  className="flex-1 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
-                >
-                    <LogOut size={20} />
-                </button>
-            </div>
-          </div>
-        </div>
+        {/* desktop header with avatar dropdown */}
+        {/* this area moved into main content instead, so sidebar no longer contains a profile card */}
       </aside>
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-30 px-6 py-4 flex items-center justify-between">
          <div className="flex items-center gap-3">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600">
+                {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
             <div className="bg-slate-950 p-2 rounded-xl shadow-lg">
                 <LayoutTemplate className="text-white" size={18} />
             </div>
             <span className="font-black text-slate-900 tracking-tighter uppercase text-sm">Smart HRMS</span>
          </div>
-         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600">
-             {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-         </button>
+         <UserMenu />
       </div>
 
       {/* Mobile Menu */}
@@ -235,6 +208,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       {/* Main Content */}
       <main className="flex-1 md:ml-80 p-6 md:p-12 pt-28 md:pt-12 overflow-y-auto h-screen bg-[#F8FAFC] scroll-smooth">
         <div className="max-w-[1400px] mx-auto">
+            {/* desktop header with avatar */}
+            <header className="hidden md:flex justify-between items-center" style={{ marginBottom: tokens.spacing.lg }}>
+                <span className="text-2xl font-black tracking-tight">Smart HRMS</span>
+                <UserMenu />
+            </header>
             {children}
         </div>
       </main>

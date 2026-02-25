@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import styles from './LeaveRequests.module.css';
 import { Card, Button, Badge } from '../../components/ui';
 import { 
     Plus, 

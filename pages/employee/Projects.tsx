@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './Projects.module.css';
 import { Card, Badge, Button } from '../../components/ui';
 import { Folder, Clock, Users, MoreHorizontal, ArrowUpRight } from 'lucide-react';
 

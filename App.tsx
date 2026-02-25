@@ -8,7 +8,9 @@ import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { TimesheetEditor } from './pages/employee/TimesheetEditor';
 import { TimesheetList } from './pages/employee/TimesheetList';
 import { LeaveRequests } from './pages/employee/LeaveRequests';
+import { EmployeeCalendar } from './pages/employee/EmployeeCalendar';
 import { Profile } from './pages/Profile';
+import { Settings } from './pages/Settings';
 import { ManagerDashboard } from './pages/manager/ManagerDashboard';
 import { TimesheetDetail } from './pages/manager/TimesheetDetail';
 import { ManagerTeamTimesheets } from './pages/manager/ManagerTeamTimesheets';
@@ -65,6 +67,14 @@ const AppRoutes = () => {
                 } 
             />
             <Route 
+                path="/employee/calendar" 
+                element={
+                    <ProtectedRoute allowedRoles={[Role.EMPLOYEE]}>
+                        <EmployeeCalendar />
+                    </ProtectedRoute>
+                }
+            />
+            <Route 
                 path="/employee/timesheet/:id" 
                 element={
                     <ProtectedRoute allowedRoles={[Role.EMPLOYEE]}>
@@ -73,12 +83,20 @@ const AppRoutes = () => {
                 } 
             />
 
-            {/* Shared Profile Route */}
-             <Route 
+            {/* Shared Routes */}
+            <Route 
                 path="/profile" 
                 element={
                     <ProtectedRoute>
                         <Profile />
+                    </ProtectedRoute>
+                } 
+            />
+            <Route 
+                path="/settings" 
+                element={
+                    <ProtectedRoute>
+                        <Settings />
                     </ProtectedRoute>
                 } 
             />
