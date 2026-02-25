@@ -107,7 +107,7 @@ export const Profile: React.FC = () => {
         <div className="max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">Account Profile</h1>
+                    <h1 className="text-[24px] font-semibold text-gray-900 tracking-tight">Account Profile</h1>
                     <p className="text-gray-500 mt-2 font-medium">Manage your digital presence and team affiliations.</p>
                 </div>
                 {!isEditing ? (

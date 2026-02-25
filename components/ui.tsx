@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimesheetStatus } from '../types';
+import { tokens } from '../styles/tokens';
 
 export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'ghost' }> = ({
   className = '',
@@ -22,7 +23,15 @@ export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
 };
 
 export const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode; className?: string }> = ({ children, className = '', ...props }) => (
-  <div className={`bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 ${className}`} {...props}>
+  <div
+    className={`bg-white ${className}`}
+    style={{
+      boxShadow: tokens.elevation.card,
+      border: tokens.elevation.border,
+      borderRadius: tokens.elevation.radius,
+    }}
+    {...props}
+  >
     {children}
   </div>
 );

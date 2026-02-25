@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
+import styles from './EmployeeDashboard.module.css';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
-import { Timesheet, TimesheetStatus, User as UserType, ManagerApprovalStatus } from '../../types';
+import { Timesheet, TimesheetStatus, User as UserType, ManagerApprovalStatus, LeaveRequest, LeaveStatus } from '../../types';
 import { Card, Button, Badge } from '../../components/ui';
 import { 
-  ChevronLeft, 
   ChevronRight, 
   Calendar, 
   Clock, 
@@ -59,10 +59,26 @@ const GOVERNMENT_HOLIDAYS: CalendarEvent[] = [
     { date: '2025-01-01', title: "New Year's Day", type: 'holiday', region: 'Global', description: 'Global Celebration' },
     { date: '2025-12-25', title: 'Christmas Day', type: 'holiday', region: 'Global', description: 'Public Holiday' },
 
-    // India National
+    // India National 2025
     { date: '2025-01-26', title: 'Republic Day', type: 'holiday', region: 'India', description: 'National Holiday' },
+    { date: '2025-03-29', title: 'Holi', type: 'holiday', region: 'India' },
+    { date: '2025-04-14', title: 'Baisakhi', type: 'holiday', region: 'India' },
+    { date: '2025-05-01', title: 'Labor Day', type: 'holiday', region: 'India' },
     { date: '2025-08-15', title: 'Independence Day', type: 'holiday', region: 'India', description: 'National Holiday' },
     { date: '2025-10-02', title: 'Gandhi Jayanti', type: 'holiday', region: 'India', description: 'National Holiday' },
+    { date: '2025-10-23', title: 'Diwali (Laxmi Puja)', type: 'holiday', region: 'India' },
+    { date: '2025-11-04', title: 'Guru Nanak Jayanti', type: 'holiday', region: 'India' },
+
+    // India National 2026
+    { date: '2026-01-01', title: "New Year's Day", type: 'holiday', region: 'Global' },
+    { date: '2026-01-26', title: 'Republic Day', type: 'holiday', region: 'India' },
+    { date: '2026-03-17', title: 'Holi', type: 'holiday', region: 'India' },
+    { date: '2026-04-14', title: 'Baisakhi', type: 'holiday', region: 'India' },
+    { date: '2026-05-01', title: 'Labor Day', type: 'holiday', region: 'India' },
+    { date: '2026-08-15', title: 'Independence Day', type: 'holiday', region: 'India' },
+    { date: '2026-10-02', title: 'Gandhi Jayanti', type: 'holiday', region: 'India' },
+    { date: '2026-10-12', title: 'Diwali (Laxmi Puja)', type: 'holiday', region: 'India' },
+    { date: '2026-11-13', title: 'Guru Nanak Jayanti', type: 'holiday', region: 'India' },
 
     // Tamil Nadu Specific
     { date: '2025-01-14', title: 'Pongal', type: 'holiday', region: 'Tamil Nadu', description: 'Harvest Festival' },
@@ -138,7 +154,6 @@ export const EmployeeDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [showReliability, setShowReliability] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showManagerModal, setShowManagerModal] = useState(false);
@@ -148,6 +163,8 @@ export const EmployeeDashboard: React.FC = () => {
   
   const [managers, setManagers] = useState<UserType[]>([]);
   const [isRequestingManager, setIsRequestingManager] = useState(false);
+  const [managerSearch, setManagerSearch] = useState('');
+  const [nextLeave, setNextLeave] = useState<LeaveRequest | null>(null);
 
   const [isCheckedIn, setIsCheckedIn] = useState(() => {
       return localStorage.getItem('is_checked_in') === 'true';
@@ -177,7 +194,22 @@ export const EmployeeDashboard: React.FC = () => {
         
         const managerList = await api.manager.listManagers();
         setManagers(managerList);
-        
+        // reset search whenever the list updates
+        setManagerSearch('');
+
+        // compute next approved leave
+        try {
+          const leaveList = await api.leave.list({ employeeId: user.id });
+          // consider approved or pending future leaves
+          const now = new Date();
+          const upcoming = leaveList
+            .filter(l => (l.status === LeaveStatus.APPROVED || l.status === LeaveStatus.SUBMITTED) && new Date(l.startDate) >= now)
+            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())[0];
+          setNextLeave(upcoming || null);
+        } catch (err) {
+          console.error('failed loading leaves', err);
+        }
+
         setLoading(false);
       }
     };
@@ -326,20 +358,15 @@ export const EmployeeDashboard: React.FC = () => {
         <div className="relative">
             {triggerConfetti && <ConfettiBurst />}
             <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                    Hello, {user?.name.split(' ')[0]} 👋
+                <h1 className="text-[24px] font-semibold text-gray-900 tracking-tight">
+                    Dashboard
                 </h1>
                 <div className="bg-primary-50 px-3 py-1 rounded-full border border-primary-100 flex items-center gap-2">
                     <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Employee Dashboard</span>
                 </div>
             </div>
-            <p className="text-gray-500 mt-2 font-medium flex items-center gap-2">
+            <p className="text-gray-500 mt-2 font-medium">
                 <span className="font-bold text-gray-900">{time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span className={`flex items-center gap-1.5 font-bold ${isCheckedIn ? 'text-green-600' : 'text-slate-400'}`}>
-                    <Zap size={14} className={isCheckedIn ? 'animate-pulse' : ''} />
-                    {isCheckedIn ? 'Active Sync' : 'System Ready'}
-                </span>
             </p>
         </div>
 
@@ -468,13 +495,13 @@ export const EmployeeDashboard: React.FC = () => {
                 <div className="flex flex-col md:flex-row items-center gap-10 mt-auto bg-slate-50/50 p-4 rounded-[3rem] border border-white/80 backdrop-blur-sm self-start">
                     <button 
                         onClick={handleAction}
-                        className={`w-full md:w-80 h-28 rounded-[2.5rem] font-black text-3xl flex items-center justify-center gap-5 transition-all hover:scale-[1.03] active:scale-95 group/btn border-0 shadow-xl relative overflow-hidden ${
+                        className={`w-full md:w-64 h-20 rounded-[2.5rem] font-black text-2xl flex items-center justify-center gap-4 transition-all hover:scale-[1.03] active:scale-95 group/btn border-0 shadow-xl relative overflow-hidden ${
                             isCheckedIn 
                             ? 'bg-red-50 text-red-600 hover:bg-red-100' 
                             : 'bg-primary-600 text-white hover:bg-primary-700'
                         }`}
                     >
-                        {isCheckedIn ? <LogOut size={40} /> : <LogIn size={40} />}
+                        {isCheckedIn ? <LogOut size={32} /> : <LogIn size={32} />}
                         {isCheckedIn ? 'CLOCK OUT' : 'CLOCK IN'}
                     </button>
 
@@ -565,7 +592,7 @@ export const EmployeeDashboard: React.FC = () => {
 
           <Card 
             className="p-8 flex items-center gap-6 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer bg-white border-0 rounded-[2rem] group"
-            onClick={() => setShowCalendar(true)}
+            onClick={() => navigate('/employee/calendar')}
           >
               <div className="p-6 bg-purple-50 text-purple-600 rounded-[1.75rem] group-hover:bg-purple-600 group-hover:text-white transition-all shadow-lg">
                   <Calendar size={28} />
@@ -573,11 +600,14 @@ export const EmployeeDashboard: React.FC = () => {
               <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Upcoming</p>
                   <p className="text-3xl font-black text-gray-900 tracking-tighter truncate">
-                    {new Date(nextHoliday.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {nextLeave
+                      ? new Date(nextLeave.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      : new Date(nextHoliday.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    }
                   </p>
                   <div className="text-[10px] font-black text-purple-600 mt-2 uppercase flex items-center gap-2">
                       <Info size={10} />
-                      {nextHoliday.title}
+                      {nextLeave ? nextLeave.type : nextHoliday.title}
                   </div>
               </div>
           </Card>
@@ -687,8 +717,21 @@ export const EmployeeDashboard: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 space-y-4">
-                      <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-3 pr-2">
-                          {managers.map(m => (
+                      <div className="space-y-3">
+                          <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                              <input
+                                  type="text"
+                                  placeholder="Search reporting lead…"
+                                  value={managerSearch}
+                                  onChange={e => setManagerSearch(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-2 mb-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                              />
+                          </div>
+                          <div className="max-h-[300px] overflow-y-auto no-scrollbar pr-2">
+                              {managers
+                                  .filter(m => m.name.toLowerCase().includes(managerSearch.toLowerCase()))
+                                  .map(m => (
                               <button
                                   key={m.id}
                                   onClick={() => handleManagerRequest(m.id)}
@@ -710,7 +753,7 @@ export const EmployeeDashboard: React.FC = () => {
                               </button>
                           ))}
                       </div>
-                      
+                  </div>
                       {isRequestingManager && (
                         <div className="flex items-center justify-center py-4">
                             <Loader2 className="animate-spin text-primary-600" size={24} />
@@ -730,107 +773,6 @@ export const EmployeeDashboard: React.FC = () => {
           </div>
       )}
 
-      {/* COMPACT & EASY-TO-USE CALENDAR OVERLAY */}
-      {showCalendar && (
-          <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowCalendar(false)}>
-              <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 border border-gray-100 relative overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-                  <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-3">
-                           <div className="p-2 bg-primary-50 text-primary-600 rounded-xl shadow-sm">
-                               <Calendar size={20} />
-                           </div>
-                           <h3 className="text-xl font-black text-gray-900 tracking-tighter">
-                               {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                           </h3>
-                      </div>
-                      <div className="flex gap-1">
-                          <button onClick={() => changeMonth(-1)} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
-                              <ChevronLeft size={18} />
-                          </button>
-                          <button onClick={() => changeMonth(1)} className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
-                              <ChevronRight size={18} />
-                          </button>
-                          <button onClick={() => setShowCalendar(false)} className="p-2 text-gray-300 hover:text-red-500 transition-all ml-1">
-                              <X size={20} />
-                          </button>
-                      </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-7 gap-1 text-center mb-4">
-                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                          <div key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-1">{d}</div>
-                      ))}
-                  </div>
-                  
-                  <div className="grid grid-cols-7 gap-1 mb-6">
-                      {renderCalendarDays()}
-                  </div>
-
-                  {/* Detail Panel for Selected Date */}
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 min-h-[120px]">
-                      {selectedDate ? (
-                          <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300 text-left">
-                               <div className="flex justify-between items-center">
-                                   <p className="text-sm font-black text-gray-900 tracking-tight">
-                                       {new Date(calendarDate.getFullYear(), calendarDate.getMonth(), selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                   </p>
-                                   <div className="flex flex-col items-end">
-                                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${selectedHoliday ? 'bg-orange-100 text-orange-700' : 'bg-primary-100 text-primary-700'}`}>
-                                          {selectedHoliday ? 'HOLIDAY' : 'WORK DAY'}
-                                      </span>
-                                      {selectedHoliday?.region && (
-                                        <span className="text-[8px] font-black text-gray-400 mt-0.5">{selectedHoliday.region}</span>
-                                      )}
-                                   </div>
-                               </div>
-                               
-                               {selectedHoliday ? (
-                                   <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-orange-100">
-                                       <Star size={18} className="fill-orange-400 text-orange-400" />
-                                       <div>
-                                           <p className="text-sm font-black text-orange-900">{selectedHoliday.title}</p>
-                                           <p className="text-[10px] font-bold text-orange-600 opacity-80">{selectedHoliday.description}</p>
-                                       </div>
-                                   </div>
-                               ) : (
-                                   <div className="space-y-2">
-                                       <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-gray-100">
-                                           <div className="w-1 h-6 bg-primary-600 rounded-full"></div>
-                                           <div>
-                                               <p className="text-[11px] font-black text-gray-900 leading-none">Normal Session</p>
-                                               <p className="text-[9px] font-bold text-gray-400 uppercase mt-1">09:00 AM - 05:00 PM</p>
-                                           </div>
-                                       </div>
-                                       <div className="flex items-center gap-2 p-2 opacity-40 border border-dashed border-gray-200 rounded-xl cursor-pointer hover:opacity-100 transition-opacity">
-                                           <Plus size={14} className="text-gray-400" />
-                                           <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Add Event</p>
-                                       </div>
-                                   </div>
-                               )}
-                          </div>
-                      ) : (
-                          <div className="h-full flex flex-col items-center justify-center text-center opacity-40 py-4">
-                              <p className="text-[10px] font-black uppercase tracking-widest">Select a date</p>
-                          </div>
-                      )}
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                      <div className="flex gap-4">
-                          <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full bg-primary-600"></div>
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full bg-orange-400"></div>
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Holiday</span>
-                          </div>
-                      </div>
-                      <Button onClick={() => setShowCalendar(false)} className="rounded-xl px-4 py-2 h-auto text-[10px] font-black uppercase tracking-widest">Close</Button>
-                  </div>
-              </div>
-          </div>
-      )}
 
       {/* REDESIGNED INTEGRITY REPORT MODAL */}
       {showReliability && (

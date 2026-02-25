@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import styles from './TimesheetEditor.module.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Timesheet, TimesheetEntry, TimesheetStatus } from '../../types';

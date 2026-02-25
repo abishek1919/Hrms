@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import styles from './TimesheetList.module.css';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { Timesheet, TimesheetStatus } from '../../types';

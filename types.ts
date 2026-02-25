@@ -62,6 +62,14 @@ export interface LeaveRequest {
   submittedAt: string;
 }
 
+export interface CalendarEvent {
+  id: string;
+  date: string; // YYYY-MM-DD
+  hour: number; // 0-23
+  title: string;
+  description?: string;
+}
+
 export interface TimesheetEntry {
   id: string;
   date: string; // YYYY-MM-DD
