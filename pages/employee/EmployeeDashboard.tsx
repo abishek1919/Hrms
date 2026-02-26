@@ -154,6 +154,7 @@ export const EmployeeDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDetailed, setShowDetailed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showManagerModal, setShowManagerModal] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
@@ -571,6 +572,46 @@ export const EmployeeDashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats Grid */}
+      {showDetailed && (
+          <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-6 backdrop-blur-sm" onClick={() => setShowDetailed(false)}>
+              <Card className="w-full max-w-3xl p-8 rounded-[2rem] overflow-auto max-h-[80vh]" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-black">Detailed Billing Report</h2>
+                      <button onClick={() => setShowDetailed(false)} className="text-gray-400 hover:text-red-500">
+                          <X size={24} />
+                      </button>
+                  </div>
+                  <div className="overflow-x-auto">
+                      <table className="w-full">
+                          <thead className="bg-gray-50 border-b border-gray-100">
+                              <tr>
+                                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Period</th>
+                                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Hours</th>
+                                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                              </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                              {timesheets.map(ts => {
+                                  const total = ts.entries.reduce((a,c) => a + c.hours, 0);
+                                  return (
+                                      <tr key={ts.id} className="hover:bg-gray-50">
+                                          <td className="px-6 py-4">{ts.month}</td>
+                                          <td className="px-6 py-4">{ts.submittedAt ? new Date(ts.submittedAt).toLocaleDateString() : 'n/a'}</td>
+                                          <td className="px-6 py-4">{total}h</td>
+                                          <td className="px-6 py-4"><span className="text-xs font-bold uppercase">{ts.status}</span></td>
+                                      </tr>
+                                  );
+                              })}
+                              {timesheets.length === 0 && (
+                                  <tr><td colSpan={4} className="py-12 text-center text-gray-400">No records available</td></tr>
+                              )}
+                          </tbody>
+                      </table>
+                  </div>
+              </Card>
+          </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card 
             className="p-8 flex items-center gap-6 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer bg-white border-0 rounded-[2rem] group"
@@ -621,7 +662,7 @@ export const EmployeeDashboard: React.FC = () => {
                      <Clock size={24} className="text-gray-400" />
                      Recent Billing
                  </h3>
-                 <Button variant="outline" className="rounded-xl px-5 text-xs font-bold border-gray-100">Detailed Report</Button>
+                 <Button variant="outline" onClick={() => setShowDetailed(true)} className="rounded-xl px-5 text-xs font-bold border-gray-100">Detailed Report</Button>
              </div>
              <div className="overflow-x-auto no-scrollbar">
                  <table className="w-full">
@@ -637,8 +678,8 @@ export const EmployeeDashboard: React.FC = () => {
                      <tbody className="divide-y divide-gray-100">
                          {timesheets.slice(0, 4).map(ts => (
                              <tr key={ts.id} className="hover:bg-primary-50/20 transition-all group">
-                                 <td className="px-10 py-8 text-lg font-black text-gray-900 tracking-tight">{ts.month}</td>
-                                 <td className="px-10 py-8 text-xs text-gray-500 font-bold">{ts.submittedAt ? new Date(ts.submittedAt).toLocaleDateString() : 'Real-time Sync'}</td>
+                                 <td className="px-10 py-8 text-base font-black text-gray-900 tracking-tight whitespace-nowrap">{ts.month}</td>
+                                 <td className="px-10 py-8 text-base font-black text-gray-900 tracking-tight whitespace-nowrap">{ts.submittedAt ? new Date(ts.submittedAt).toLocaleDateString() : 'Real-time Sync'}</td>
                                  <td className="px-10 py-8 text-base text-gray-900 font-black">{ts.entries.reduce((a,c) => a+c.hours, 0)}h</td>
                                  <td className="px-10 py-8"><Badge status={ts.status} className="rounded-full px-5 py-2 text-[10px] font-black uppercase tracking-widest" /></td>
                                  <td className="px-10 py-8 text-right">
