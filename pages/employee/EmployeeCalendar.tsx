@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { LeaveRequest, LeaveStatus, CalendarEvent } from '../../types';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { Card } from '../../components/ui';
 
 // simple copy of holiday list for reference - could be shared later
@@ -38,6 +38,11 @@ export const EmployeeCalendar: React.FC = () => {
     const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
     const [calendarDate, setCalendarDate] = useState(new Date());
     const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [eventTitle, setEventTitle] = useState('');
+    const [eventHour, setEventHour] = useState(9);
+    const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
     // load leaves and events
     useEffect(() => {
@@ -93,20 +98,30 @@ const changePeriod = (offset: number) => {
 
         // blank cells
         for (let i = 0; i < firstDay; i++) {
-            cells.push(<div key={`empty-${i}`} className="h-16 w-16"></div>);
+            cells.push(<div key={`empty-${i}`} className="aspect-square"></div>);
         }
         for (let day = 1; day <= totalDays; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const hasLeave = leaves.some(l => l.startDate === dateStr);
             const hasHoliday = GOVERNMENT_HOLIDAYS.some(h => h.date === dateStr);
-            const hasEvent = events.some(e => e.date === dateStr);
+            const dayEvents = events.filter(e => e.date === dateStr);
             cells.push(
                 <div
                     key={dateStr}
-                    className={`h-16 w-16 flex items-center justify-center text-sm font-bold relative ${hasLeave ? 'bg-green-100' : hasHoliday ? 'bg-orange-100' : ''}`}
+                    onClick={() => { setSelectedDate(dateStr); setShowEventModal(true); }}
+                    className={`aspect-square p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col ${hasLeave ? 'bg-green-100 border-green-300' : hasHoliday ? 'bg-orange-100 border-orange-300' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
                 >
-                    {day}
-                    {hasEvent && <span className="absolute bottom-1 right-1 w-2 h-2 bg-primary-600 rounded-full" />}
+                    <div className="text-sm font-bold text-gray-800">{day}</div>
+                    <div className="flex-1 text-xs space-y-1 overflow-auto">
+                        {dayEvents.slice(0, 2).map(ev => (
+                            <div key={ev.id} className="bg-primary-100 text-primary-700 rounded px-1 py-0.5 truncate text-xs">
+                                {ev.title}
+                            </div>
+                        ))}
+                        {dayEvents.length > 2 && (
+                            <div className="text-xs text-gray-500">+{dayEvents.length - 2} more</div>
+                        )}
+                    </div>
                 </div>
             );
         }
@@ -116,21 +131,48 @@ const changePeriod = (offset: number) => {
     const handleEditEvent = (id: string) => {
         const ev = events.find(e => e.id === id);
         if (!ev) return;
-        const newTitle = prompt('Edit event title (leave blank to delete)', ev.title);
-        if (newTitle === null) return;
-        if (newTitle.trim() === '') {
+        setEventTitle(ev.title);
+        setEventHour(ev.hour);
+        setEditingEventId(id);
+    };
+
+    const handleDeleteEvent = (id: string) => {
+        if (confirm('Delete this event?')) {
             setEvents(prev => prev.filter(e => e.id !== id));
-        } else {
-            setEvents(prev => prev.map(e => e.id === id ? { ...e, title: newTitle } : e));
         }
     };
 
-    const addEvent = (dateStr: string, hour: number) => {
-        const title = prompt('Event title');
-        if (title) {
+    const handleSaveEvent = () => {
+        if (!eventTitle.trim() || !selectedDate) return;
+
+        if (editingEventId) {
+            setEvents(prev => prev.map(e => 
+                e.id === editingEventId ? { ...e, title: eventTitle, hour: eventHour } : e
+            ));
+        } else {
             const id = String(Date.now());
-            setEvents(prev => [...prev, { id, date: dateStr, hour, title }]);
+            setEvents(prev => [...prev, { id, date: selectedDate, hour: eventHour, title: eventTitle }]);
         }
+        
+        setEventTitle('');
+        setEventHour(9);
+        setEditingEventId(null);
+    };
+
+    const handleCloseModal = () => {
+        setShowEventModal(false);
+        setSelectedDate(null);
+        setEventTitle('');
+        setEventHour(9);
+        setEditingEventId(null);
+    };
+
+    const addEvent = (dateStr: string, hour: number) => {
+        setSelectedDate(dateStr);
+        setEventHour(hour);
+        setEventTitle('');
+        setEditingEventId(null);
+        setShowEventModal(true);
     };
 
     return (
@@ -169,11 +211,13 @@ const changePeriod = (offset: number) => {
             </div>
 
             {view === 'month' && (
-                <div className="grid grid-cols-7 gap-1">
-                    {['S','M','T','W','T','F','S'].map(d => (
-                        <div key={d} className="text-center font-black text-xs text-gray-500 pb-1">{d}</div>
-                    ))}
-                    {renderMonth()}
+                <div className="space-y-4">
+                    <div className="grid grid-cols-7 gap-2">
+                        {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+                            <div key={d} className="text-center font-black text-sm text-gray-600 py-2">{d}</div>
+                        ))}
+                        {renderMonth()}
+                    </div>
                 </div>
             )}
 
@@ -191,18 +235,37 @@ const changePeriod = (offset: number) => {
                         const dateStr = calendarDate.toISOString().slice(0,10);
                         const slotEvents = events.filter(e => e.date === dateStr && e.hour === hour);
                         return (
-                            <div key={hour} className="flex items-start justify-between p-2 border-b">
-                                <div className="w-16 text-sm text-gray-600">{hour}:00</div>
-                                <div className="flex-1">
-                                    {slotEvents.map(ev => (
-                                        <div
-                                            key={ev.id}
-                                            className="p-2 mb-1 bg-primary-50 rounded cursor-pointer"
-                                            onClick={() => handleEditEvent(ev.id)}
-                                        >{ev.title}</div>
-                                    ))}
+                            <div key={hour} className="flex items-start gap-3 p-3 border-b hover:bg-gray-50 transition-colors">
+                                <div className="w-16 text-sm font-semibold text-gray-700 flex-shrink-0">{String(hour).padStart(2, '0')}:00</div>
+                                <div className="flex-1 space-y-2">
+                                    {slotEvents.length === 0 ? (
+                                        <div className="text-sm text-gray-400 italic py-1">No events</div>
+                                    ) : (
+                                        slotEvents.map(ev => (
+                                            <div
+                                                key={ev.id}
+                                                className="p-2 bg-primary-100 border border-primary-300 rounded-lg cursor-pointer hover:bg-primary-200 transition-colors flex items-center justify-between group"
+                                                onClick={() => { handleEditEvent(ev.id); }}
+                                            >
+                                                <span className="font-semibold text-primary-900">{ev.title}</span>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteEvent(ev.id); }}
+                                                    className="opacity-0 group-hover:opacity-100 ml-2 p-1 text-red-600 hover:bg-red-100 rounded transition-all"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
-                                <button onClick={() => addEvent(dateStr, hour)} className="text-primary-600">+</button>
+                                <button 
+                                    onClick={() => addEvent(dateStr, hour)} 
+                                    className="flex-shrink-0 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center gap-1 whitespace-nowrap"
+                                >
+                                    <Plus size={16} />
+                                    Add
+                                </button>
                             </div>
                         );
                     })}
@@ -224,22 +287,39 @@ const changePeriod = (offset: number) => {
                         })}
                         {[...Array(24).keys()].map(hour => (
                             <React.Fragment key={hour}>
-                                <div className="text-sm text-gray-600 py-1">{hour}:00</div>
+                                <div className="text-sm font-semibold text-gray-700 py-2 border-b">{String(hour).padStart(2, '0')}:00</div>
                                 {Array.from({ length: 7 }).map((_, j) => {
                                     const d = new Date(getWeekStart(calendarDate));
                                     d.setDate(d.getDate() + j);
                                     const dateStr = d.toISOString().slice(0,10);
                                     const slotEvents = events.filter(e => e.date === dateStr && e.hour === hour);
                                     return (
-                                        <div key={j} className="p-1 border">
-                                            {slotEvents.map(ev => (
-                                                <div
-                                                    key={ev.id}
-                                                    className="text-xs bg-primary-50 rounded mb-1 cursor-pointer"
-                                                    onClick={() => handleEditEvent(ev.id)}
-                                                >{ev.title}</div>
-                                            ))}
-                                            <button onClick={() => addEvent(dateStr, hour)} className="text-primary-600 text-xs">+</button>
+                                        <div key={j} className="p-2 border-b border-r min-h-20 relative hover:bg-gray-50 transition-colors group">
+                                            <div className="space-y-1 mb-2">
+                                                {slotEvents.map(ev => (
+                                                    <div
+                                                        key={ev.id}
+                                                        className="text-xs bg-primary-100 border border-primary-300 rounded p-1 cursor-pointer hover:bg-primary-200 transition-colors flex items-center justify-between group/event"
+                                                        onClick={() => handleEditEvent(ev.id)}
+                                                    >
+                                                        <span className="font-semibold truncate">{ev.title}</span>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteEvent(ev.id); }}
+                                                            className="opacity-0 group-hover/event:opacity-100 ml-1 text-red-600 hover:text-red-800 transition-all flex-shrink-0"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button 
+                                                onClick={() => addEvent(dateStr, hour)} 
+                                                className="opacity-0 group-hover:opacity-100 absolute bottom-1 right-1 p-1 bg-primary-600 text-white rounded hover:bg-primary-700 transition-all"
+                                                title="Add Event"
+                                            >
+                                                <Plus size={14} />
+                                            </button>
                                         </div>
                                     );
                                 })}
@@ -265,6 +345,147 @@ const changePeriod = (offset: number) => {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* Event Modal */}
+            {showEventModal && selectedDate && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <Card className="w-full max-w-lg mx-4 bg-white rounded-lg p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">
+                                {new Date(selectedDate).toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                            </h2>
+                            <button 
+                                onClick={handleCloseModal}
+                                className="p-1 hover:bg-gray-100 rounded"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Holiday Notice */}
+                        {(() => {
+                            const holiday = getHolidayForDate(selectedDate);
+                            if (holiday) {
+                                return (
+                                    <div className="p-3 mb-4 bg-orange-100 text-orange-700 rounded-lg font-semibold">
+                                        🎉 Holiday: {holiday.title}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
+                        {/* Leave Notice */}
+                        {(() => {
+                            const hasLeave = leaves.some(l => l.startDate === selectedDate);
+                            if (hasLeave) {
+                                return (
+                                    <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg font-semibold">
+                                        ✓ Leave Approved
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
+                        {/* Events List */}
+                        <div className="max-h-64 overflow-y-auto mb-4">
+                            <h3 className="font-bold text-lg mb-3">Events</h3>
+                            {events.filter(e => e.date === selectedDate).length === 0 ? (
+                                <p className="text-gray-500 text-sm">No events scheduled</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {events.filter(e => e.date === selectedDate).map(ev => (
+                                        <div 
+                                            key={ev.id}
+                                            className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-200"
+                                        >
+                                            <div className="flex-1">
+                                                <p className="font-bold text-primary-900">{ev.title}</p>
+                                                <p className="text-xs text-gray-500">{ev.hour}:00</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditEvent(ev.id)}
+                                                    className="p-1.5 text-blue-600 hover:bg-blue-100 rounded"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteEvent(ev.id)}
+                                                    className="p-1.5 text-red-600 hover:bg-red-100 rounded"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add/Edit Event Form */}
+                        <div className="border-t pt-4">
+                            <h3 className="font-bold mb-3">
+                                {editingEventId ? 'Edit Event' : 'Add Event'}
+                            </h3>
+                            <div className="space-y-3 mb-4">
+                                <div>
+                                    <label className="text-sm text-gray-600 block mb-1">Event Title</label>
+                                    <input
+                                        type="text"
+                                        value={eventTitle}
+                                        onChange={(e) => setEventTitle(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSaveEvent()}
+                                        placeholder="Event title..."
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm text-gray-600 block mb-1">Time</label>
+                                    <select
+                                        value={eventHour}
+                                        onChange={(e) => setEventHour(Number(e.target.value))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
+                                    >
+                                        {[...Array(24).keys()].map(hour => (
+                                            <option key={hour} value={hour}>
+                                                {String(hour).padStart(2, '0')}:00
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveEvent}
+                                    disabled={!eventTitle.trim()}
+                                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                                >
+                                    <Plus size={16} className="inline mr-2" />
+                                    {editingEventId ? 'Update' : 'Add'}
+                                </button>
+                                {editingEventId && (
+                                    <button
+                                        onClick={() => { setEditingEventId(null); setEventTitle(''); setEventHour(9); }}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </Card>
                 </div>
             )}
         </div>
