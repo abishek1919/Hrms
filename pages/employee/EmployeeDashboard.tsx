@@ -154,7 +154,6 @@ export const EmployeeDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showReliability, setShowReliability] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showManagerModal, setShowManagerModal] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
@@ -572,7 +571,7 @@ export const EmployeeDashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card 
             className="p-8 flex items-center gap-6 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer bg-white border-0 rounded-[2rem] group"
             onClick={() => navigate('/employee/leaves')}
@@ -612,22 +611,6 @@ export const EmployeeDashboard: React.FC = () => {
               </div>
           </Card>
 
-          <Card 
-            className="p-8 flex items-center gap-6 hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer bg-white border-0 rounded-[2rem] group"
-            onClick={() => setShowReliability(true)}
-          >
-              <div className="p-6 bg-orange-50 text-orange-600 rounded-[1.75rem] group-hover:bg-orange-600 group-hover:text-white transition-all shadow-lg">
-                  <AlertTriangle size={28} />
-              </div>
-              <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Reliability</p>
-                  <p className="text-3xl font-black text-gray-900 tracking-tighter truncate">99<span className="text-sm font-bold opacity-40 ml-1">%</span></p>
-                  <div className="text-[10px] font-black text-orange-600 mt-2 uppercase flex items-center gap-2">
-                      <Award size={10} />
-                      Performance Score
-                  </div>
-              </div>
-          </Card>
       </div>
 
       {/* History Table Section */}
@@ -774,99 +757,7 @@ export const EmployeeDashboard: React.FC = () => {
       )}
 
 
-      {/* REDESIGNED INTEGRITY REPORT MODAL */}
-      {showReliability && (
-          <div className="fixed inset-0 bg-slate-900/95 z-[200] flex items-center justify-center p-6 backdrop-blur-[20px] animate-in fade-in duration-500" onClick={() => setShowReliability(false)}>
-              <div className="bg-white rounded-[3rem] shadow-[0_64px_128px_-24px_rgba(0,0,0,0.6)] max-w-2xl w-full p-12 border border-white/20 relative overflow-hidden flex flex-col gap-10" onClick={e => e.stopPropagation()}>
-                  
-                  {/* Close Button */}
-                  <button onClick={() => setShowReliability(false)} className="absolute top-8 right-8 text-gray-300 hover:text-red-500 hover:rotate-90 transition-all p-2 rounded-full hover:bg-red-50">
-                      <X size={32} />
-                  </button>
 
-                  {/* Header Section */}
-                  <div className="flex flex-col md:flex-row items-center gap-10">
-                      {/* Big Score Radial */}
-                      <div className="relative w-48 h-48 flex items-center justify-center shrink-0">
-                          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                              <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                              <circle
-                                  cx="50"
-                                  cy="50"
-                                  r="45"
-                                  fill="none"
-                                  stroke="url(#integrityGradient)"
-                                  strokeWidth="8"
-                                  strokeDasharray="280, 282.6"
-                                  strokeLinecap="round"
-                                  className="transition-all duration-[2s]"
-                              />
-                              <defs>
-                                  <linearGradient id="integrityGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                      <stop offset="0%" stopColor="#2563eb" />
-                                      <stop offset="100%" stopColor="#8b5cf6" />
-                                  </linearGradient>
-                              </defs>
-                          </svg>
-                          <div className="absolute flex flex-col items-center">
-                              <span className="text-6xl font-black text-slate-900 tracking-tighter">99</span>
-                              <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest">Percentile</span>
-                          </div>
-                      </div>
-
-                      <div className="flex-1 text-center md:text-left">
-                          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-50 text-primary-600 border border-primary-100 text-[10px] font-black tracking-widest uppercase mb-4 shadow-sm">
-                              <ShieldCheck size={14} />
-                              Verified Trust Level
-                          </div>
-                          <h3 className="text-4xl font-black text-gray-900 tracking-tighter mb-2 leading-none">Integrity Index</h3>
-                          <p className="text-gray-500 font-bold text-sm leading-relaxed max-w-xs">
-                              Your professional reliability is calculated based on session consistency, performance accuracy, and system engagement.
-                          </p>
-                      </div>
-                  </div>
-
-                  {/* Breakdown Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {[
-                          { label: 'Session Consistency', score: '100%', icon: <Timer size={20} />, color: 'blue', desc: 'No missed clock-ins' },
-                          { label: 'Work Performance', score: '98%', icon: <Target size={20} />, color: 'purple', desc: 'Output target met' },
-                          { label: 'Audit Precision', score: '99%', icon: <Check size={20} />, color: 'emerald', desc: '0 log discrepancies' }
-                      ].map((item, i) => (
-                          <div key={i} className="bg-slate-50 border border-slate-100 rounded-[2rem] p-6 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all group">
-                              <div className={`w-12 h-12 rounded-2xl bg-white text-${item.color}-600 flex items-center justify-center mb-6 shadow-sm group-hover:bg-${item.color}-600 group-hover:text-white transition-all`}>
-                                  {item.icon}
-                              </div>
-                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
-                              <p className="text-2xl font-black text-slate-900 mb-2">{item.score}</p>
-                              <p className="text-[10px] font-bold text-slate-500 leading-tight opacity-70">{item.desc}</p>
-                          </div>
-                      ))}
-                  </div>
-
-                  {/* Recognition Footer */}
-                  <div className="bg-slate-950 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex items-center justify-between shadow-2xl">
-                      <div className="relative z-10 flex items-center gap-6">
-                          <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-inner">
-                              <Award className="text-yellow-400" size={36} />
-                          </div>
-                          <div>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Elite Recognition</p>
-                              <p className="text-2xl font-black tracking-tight leading-none italic uppercase">Verified Power Contributor</p>
-                          </div>
-                      </div>
-                      <div className="hidden md:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-                          <Zap size={16} className="text-yellow-400 animate-pulse" />
-                          <span className="text-[10px] font-black tracking-widest uppercase">Top 1%</span>
-                      </div>
-
-                      {/* Decorative Background Elements */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-600 rounded-full blur-[60px] opacity-40"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-purple-600 rounded-full blur-[50px] opacity-30"></div>
-                  </div>
-              </div>
-          </div>
-      )}
     </div>
   );
 };

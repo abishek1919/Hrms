@@ -69,16 +69,16 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ selectedDate, onSelect, min
 
     return (
         <div className="relative w-full">
-            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2">{label}</label>
+            <label className="fieldLabel">{label}</label>
             <button 
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 flex items-center justify-between text-gray-900 font-black hover:border-primary-200 transition-all shadow-inner"
+                className="fieldBox h-14 flex items-center justify-between withIconRight"
             >
-                <span className={selectedDate ? 'text-gray-900' : 'text-gray-300'}>
+                <span className={selectedDate ? 'text-gray-900' : 'text-gray-400'}>
                     {selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select Date'}
                 </span>
-                <CalendarIcon size={18} className="text-primary-600" />
+                <CalendarIcon size={20} className="fieldIconRight" />
             </button>
 
             {isOpen && (
@@ -405,7 +405,7 @@ export const LeaveRequests: React.FC = () => {
             {/* Create/Edit Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}>
-                    <Card className="w-full max-w-lg bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col gap-8" onClick={e => e.stopPropagation()}>
+                    <Card className="w-full max-w-xl bg-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col gap-8" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">
                                 {editingLeaveId ? 'Edit Leave Request' : 'New Absence Request'}
@@ -421,9 +421,9 @@ export const LeaveRequests: React.FC = () => {
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Absence Type</label>
-                                <select name="type" value={formData.type} onChange={handleInputChange} className="w-full px-6 h-14 bg-slate-50 border border-slate-100 rounded-2xl text-gray-900 font-bold focus:outline-none focus:ring-2 focus:ring-primary-100 transition-all">
+                            <div className="fieldRow">
+                                <label className="fieldLabel">Absence Type</label>
+                                <select name="type" value={formData.type} onChange={handleInputChange} className="fieldBox">
                                     <option value={LeaveType.ANNUAL}>{LeaveType.ANNUAL}</option>
                                     <option value={LeaveType.SICK}>{LeaveType.SICK}</option>
                                     <option value={LeaveType.PERSONAL}>{LeaveType.PERSONAL}</option>
@@ -435,23 +435,29 @@ export const LeaveRequests: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <MiniCalendar 
-                                    label="Start Date" 
-                                    selectedDate={formData.startDate} 
-                                    onSelect={(d) => handleDateSelect('startDate', d)} 
-                                />
-                                <MiniCalendar 
-                                    label="End Date" 
-                                    selectedDate={formData.endDate} 
-                                    minDate={formData.startDate} 
-                                    onSelect={(d) => handleDateSelect('endDate', d)} 
-                                />
+                            <div className="p-6 bg-white rounded-3xl shadow-inner border border-gray-100 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="fieldRow">
+                                        <MiniCalendar 
+                                            label="From"
+                                            selectedDate={formData.startDate} 
+                                            onSelect={(d) => handleDateSelect('startDate', d)} 
+                                        />
+                                    </div>
+                                    <div className="fieldRow">
+                                        <MiniCalendar 
+                                            label="To"
+                                            selectedDate={formData.endDate} 
+                                            minDate={formData.startDate} 
+                                            onSelect={(d) => handleDateSelect('endDate', d)} 
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Reason</label>
-                                <textarea name="reason" value={formData.reason} onChange={handleInputChange} className="w-full px-6 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-gray-900 font-medium focus:outline-none min-h-[140px] resize-none" placeholder="Briefly describe your request..." required />
+                            <div className="fieldRow mt-8">
+                                <label className="fieldLabel">Reason</label>
+                                <textarea name="reason" value={formData.reason} onChange={handleInputChange} className="fieldBox min-h-[200px] resize-none" placeholder="Briefly describe your request..." required />
                             </div>
 
                             <div className="flex justify-end gap-6 pt-4">

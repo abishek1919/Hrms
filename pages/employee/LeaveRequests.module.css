@@ -1,1 +1,68 @@
 /* LeaveRequests styles */
+
+.fieldBox {
+  width: 100%;
+  background-color: #f3f4f6; /* slightly lighter grey to mimic screenshot */
+  border: 1px solid #e5e7eb;
+  border-radius: 2rem;
+  padding: 1rem 1.75rem;
+  min-height: 3.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  position: relative;
+}
+
+/* right icon variant */
+.fieldBox.withIconRight {
+  padding-right: 3.5rem;
+}
+
+.fieldIconRight {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #3b82f6;
+}
+
+/* left icon variant kept for flexibility */
+.fieldBox.withIcon {
+  padding-left: 3.5rem;
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #3b82f6;
+}
+
+.fieldBox:focus,
+.fieldBox:focus-visible {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+  background-color: #ffffff;
+}
+
+/* smaller label styling for form rows */
+.fieldLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+/* container for form rows */
+.fieldRow {
+  margin-top: 0.5rem;
+}
+
