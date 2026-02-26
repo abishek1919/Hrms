@@ -46,7 +46,7 @@ export const Login: React.FC = () => {
              <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
                 <LayoutTemplate size={24} className="text-white" />
              </div>
-             <span className="text-xl font-bold tracking-tight">Smart HRMS</span>
+             <span className="text-xl font-bold tracking-tight">BowHrms</span>
         </div>
 
         <div className="relative z-10 max-w-lg">

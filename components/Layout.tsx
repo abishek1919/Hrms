@@ -111,8 +111,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <LayoutTemplate className="text-white" size={26} />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl font-black text-slate-950 tracking-tighter uppercase leading-none">Smart HRMS</h1>
-            <span className="text-[9px] font-black text-primary-600 uppercase tracking-widest mt-1">Enterprise V2.5</span>
+            <h1 className="text-xl font-black text-slate-950 tracking-tighter uppercase leading-none">BowHrms</h1>
           </div>
         </div>
 
@@ -173,7 +172,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <div className="bg-slate-950 p-2 rounded-xl shadow-lg">
                 <LayoutTemplate className="text-white" size={18} />
             </div>
-            <span className="font-black text-slate-900 tracking-tighter uppercase text-sm">Smart HRMS</span>
+            <span className="font-black text-slate-900 tracking-tighter uppercase text-sm">BowHrms</span>
          </div>
          <UserMenu />
       </div>
@@ -209,8 +208,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <main className="flex-1 md:ml-80 p-6 md:p-12 pt-28 md:pt-12 overflow-y-auto h-screen bg-[#F8FAFC] scroll-smooth">
         <div className="max-w-[1400px] mx-auto">
             {/* desktop header with avatar */}
-            <header className="hidden md:flex justify-between items-center" style={{ marginBottom: tokens.spacing.lg }}>
-                <span className="text-2xl font-black tracking-tight">Smart HRMS</span>
+            <header className="hidden md:flex justify-end items-center" style={{ marginBottom: tokens.spacing.lg }}>
                 <UserMenu />
             </header>
             {children}

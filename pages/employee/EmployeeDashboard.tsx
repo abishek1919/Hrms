@@ -357,12 +357,9 @@ export const EmployeeDashboard: React.FC = () => {
       <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="relative">
             {triggerConfetti && <ConfettiBurst />}
-            <div className="flex items-center gap-3">
-                <h1 className="text-[24px] font-semibold text-gray-900 tracking-tight">
-                    Dashboard
-                </h1>
-                <div className="bg-primary-50 px-3 py-1 rounded-full border border-primary-100 flex items-center gap-2">
-                    <span className="text-[10px] font-black text-primary-700 uppercase tracking-widest">Employee Dashboard</span>
+            <div className="flex items-start">
+                <div className="bg-primary-50 px-4 py-2 rounded-full border border-primary-100 flex items-center gap-2 -mt-1">
+                    <span className="text-lg font-black text-primary-700 uppercase tracking-widest">Employee Dashboard</span>
                 </div>
             </div>
             <p className="text-gray-500 mt-2 font-medium">

@@ -1,4 +1,4 @@
-// Design tokens for Smart HRMS
+// Design tokens for BowHrms
 // Centralized values to ensure consistency across the app.
 
 export const tokens = {
